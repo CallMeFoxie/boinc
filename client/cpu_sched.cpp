@@ -79,6 +79,8 @@
 #include "project.h"
 #include "result.h"
 
+#define BACKOFF 10
+
 
 using std::vector;
 using std::list;
@@ -146,7 +148,13 @@ struct PROC_RESOURCES {
                 atp->needs_shmem = false;
             }
         }
-        if (rp->schedule_backoff > gstate.now) return false;
+        if (rp->schedule_backoff > gstate.now) {
+            if(log_flags.cpu_sched_debug) {
+                msg_printf(rp->project, MSG_INFO, 
+                "[cpu_sched_debug] there's a backoff on this project... not scheduling");
+            }
+            return false;
+        }
         if (rp->uses_gpu()) {
             if (gpu_suspend_reason) return false;
         }
@@ -1309,10 +1317,12 @@ bool CLIENT_STATE::enforce_run_list(vector<RESULT*>& run_list) {
                 atp->too_large = true;
             }
             if (log_flags.cpu_sched_debug || log_flags.mem_usage_debug) {
+                rp->schedule_backoff = gstate.now + BACKOFF;
                 msg_printf(rp->project, MSG_INFO,
-                    "[cpu_sched_debug] enforce: task %s can't run, too big %.2fMB > %.2fMB",
-                    rp->name,  wss/MEGA, ram_left/MEGA
+                    "[cpu_sched_debug] enforce: task %s can't run, too big %.2fMB > %.2fMB, setting backoff to %d",
+                    rp->name,  wss/MEGA, ram_left/MEGA, rp->schedule_backoff
                 );
+                
             }
             continue;
         }
