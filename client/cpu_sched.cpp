@@ -79,7 +79,7 @@
 #include "project.h"
 #include "result.h"
 
-#define BACKOFF 10
+#define BACKOFF 320 // 5 minutes and 20 seconds
 
 
 using std::vector;
