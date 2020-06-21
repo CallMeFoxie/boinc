@@ -79,7 +79,7 @@
 #include "project.h"
 #include "result.h"
 
-#define BACKOFF 320 // 5 minutes and 20 seconds
+#define BACKOFF 140 // 2 minutes and 20 seconds
 
 
 using std::vector;
@@ -1316,10 +1316,10 @@ bool CLIENT_STATE::enforce_run_list(vector<RESULT*>& run_list) {
             if (atp) {
                 atp->too_large = true;
             }
+            rp->schedule_backoff = gstate.now + BACKOFF;
             if (log_flags.cpu_sched_debug || log_flags.mem_usage_debug) {
-                rp->schedule_backoff = gstate.now + BACKOFF;
                 msg_printf(rp->project, MSG_INFO,
-                    "[cpu_sched_debug] enforce: task %s can't run, too big %.2fMB > %.2fMB, setting backoff to %d",
+                    "[cpu_sched_debug] enforce: task %s can't run, too big %.2fMB > %.2fMB, setting backoff to %.2f",
                     rp->name,  wss/MEGA, ram_left/MEGA, rp->schedule_backoff
                 );
                 
